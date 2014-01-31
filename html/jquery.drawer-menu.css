@@ -1,0 +1,25 @@
+.drawer-menu-body{
+	position : absolute;
+	width: 100%;
+	height: 100%;
+}
+.drawer-menu-page{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
+.drawer-menu-panels{
+	position: absolute;
+	display: none;
+	width: 100%;
+	height: 100%;
+	top: 0;
+	overflow : auto;
+}
+.drawer-menu-panel{
+	position: absolute;
+	display: none;
+	width: 100%;
+	height: 100%;
+	top: 0;
+}
