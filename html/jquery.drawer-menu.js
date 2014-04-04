@@ -1,6 +1,6 @@
 /* Drawer-menu
- * varsion : v1.1.1
- * date    : 2014-03-31
+ * varsion : v1.1.2
+ * date    : 2014-04-04
  * http://www.coosy.co.jp/
  * Copyright (c) 2014 COOSY inc.inc */
 (function($){
@@ -18,6 +18,7 @@
 	
 	var privateMethods = {
 		scroll : function(expr){
+			if(!bo) return;
 			var $this = $(expr);
 			var touchStartPositionX;
 			var touchStartPositionY;
@@ -40,11 +41,7 @@
 					startScrollY = $(expr).scrollTop();
 				}
 				if(e.type == "touchmove"){
-					if(bo){
-						e.preventDefault();
-					}else{
-						e.stopPropagation();
-					}
+					e.preventDefault();
 					//現在の座標を取得
 					touchMovePositionX = touch.pageX;
 					touchMovePositionY = touch.pageY;
@@ -361,7 +358,7 @@
 				this
 					.find(settings.children).each(function(){
 							var $this = $(this);
-							$this.data('drawer_menu', { 'parent' : $menu })
+							$this.data('drawer_menu', { 'parent' : $menu });
 						})
 						.not(':first').hide().css(settings.child_side, '-100%')
 						.end()
