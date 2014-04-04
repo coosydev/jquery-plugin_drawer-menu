@@ -1,13 +1,20 @@
 /* Drawer-menu
- * varsion : v1.1.0
+ * varsion : v1.1.1
  * date    : 2014-03-31
  * http://www.coosy.co.jp/
  * Copyright (c) 2014 COOSY inc.inc */
 (function($){
 	var $opened = null;		// $opened drawer menu
 	var moving  = false;	// Moving drawer menu
+	var windowSize = 0;
 	var resizeTimer = false;
 	var EVENT_TRANSITION_END = "oTransitionEnd mozTransitionEnd webkitTransitionEnd transitionend";
+	var EVENT_ANIMATION_END = "oAnimationEnd mozAnimationEnd webkitAnimationEnd animationend";
+	var prefix = [ 'webkit', 'moz', 'ms', 'o' ];
+	var ua = navigator.userAgent.toLowerCase();
+	var android_version = ua.substr(ua.indexOf('android')+8, 3);
+	var bo = false;
+	if(ua.indexOf("android")) if(parseFloat(android_version) <= 2.3) bo = true;
 	
 	var privateMethods = {
 		scroll : function(expr){
@@ -33,7 +40,11 @@
 					startScrollY = $(expr).scrollTop();
 				}
 				if(e.type == "touchmove"){
-					e.preventDefault();
+					if(bo){
+						e.preventDefault();
+					}else{
+						e.stopPropagation();
+					}
 					//現在の座標を取得
 					touchMovePositionX = touch.pageX;
 					touchMovePositionY = touch.pageY;
@@ -61,7 +72,7 @@
 				clearTimeout(resizeTimer);
 			}
 			resizeTimer = setTimeout(function() {
-				if($opened){ $opened.drawer_menu("close"); }
+				if($opened && windowSize != $(window).width()){ $opened.drawer_menu("close"); }
 			}, 200);
 		},
 		getCssAnimation : function(css, speed, easing){
@@ -77,13 +88,28 @@
 				transition: animation,
 			}
 		},
+		/*addCssAnimation : function(cssName, name, duration, timingFunction, interationCount){
+			var strcss ='';
+			var _prefix = prefix;
+			_prefix.push('');
+			var len = _prefix.length - 1;
+			$.each(_prefix, function(key, val){
+				var pf = (key < len) ? '-' + val + '-' : '';
+				strcss += pf + 'animation-name : '     + name + ';\n\r';
+				strcss += pf + 'animation-duration : ' + duration + ';\n\r';
+				strcss += pf + 'timing-function : '    + timingFunction + ';\n\r';
+				strcss += pf + 'iteration-count : '    + interationCount + ';\n\r';
+			});
+			strcss = '.' + cssName + '{\n\r' + strcss + '}\n\r';
+			console.log(strcss);
+		},*/
 		execute_child : function(action, callback){
 			if(moving) return false;
 			var $children, $child, $that, $ather, $menu, child_settings, closeTo,settings,childCss = {},result,$html = $('html'), fnAnimeEnd, fnSetAnimate;
 			if(this.length == 1){
 				$child = this;
 				child_settings = $child.data('drawer_menu');
-				if( !child_settings || !$.map(child_settings, function(key, value){ return key;}).length) return false;
+				if( !child_settings || !$.map(child_settings, function(value, key){ return key;}).length) return false;
 				$menu = $(child_settings.parent);
 			}else if ($opened){
 				$menu = $opened;
@@ -96,20 +122,20 @@
 			settings = $menu.data('drawer_menu');
 			$children = $menu.find(settings.children);
 			$that = $children.filter(':visible');
-			$ather = $children.not(this);
 			if(!$child){
 				$child = $that;
 				child_settings = $child.data('drawer_menu');
 			}
+			$ather = $children.not($child);
 			closeTo = $child.data('drawer_menuCloseto');
 			
 			fnSetAnimate = function($expr, css, fncEnd){
 				if(settings.cssAnimation){
 					if(fncEnd) $expr.on(EVENT_TRANSITION_END, fncEnd);
-					setTimeout((function($expr, css){ return function(){ $expr.css(css); } })($expr, css), 100);
+					$expr.css(settings.child_side);
+					$expr.css(css);
 				}else{
-					console.log(fncEnd);
-					$expr.animate(css, settings.child_speed);
+					$expr.animate(css, settings.child_speed, fncEnd);
 				}
 			};
 			
@@ -184,7 +210,7 @@
 				);
 			if(!$menu) return;
 			var settings = $menu.data('drawer_menu');
-			if( !settings || !$.map(settings, function(key, value){ return key;}).length) return;
+			if( !settings || !$.map(settings, function(value, key){ return key;}).length) return;
 			if(settings.parent){
 				return privateMethods.execute_child.apply(this, arguments);
 			}
@@ -197,9 +223,9 @@
 				fnSetAnimate = function($expr, css, fncEnd){
 					if(settings.cssAnimation){
 						if(fncEnd) $expr.on(EVENT_TRANSITION_END, fncEnd);
-						setTimeout((function($expr, css){ return function(){ $expr.css(css); } })($expr, css), 100);
+						$expr.css(settings.side);
+						$expr.css(css);
 					}else{
-						console.log(fncEnd);
 						$expr.animate(css, settings.speed, fncEnd);
 					}
 				},
@@ -218,6 +244,7 @@
 						}]);
 				}
 				moving = true;
+				windowSize = $(window).width();
 				settings.beforeOpen();
 				$menu.scrollTop(0);
 				if(settings.tapToClose){
@@ -345,12 +372,15 @@
 				.css(settings.side, '-' + settings.width)
 				.data('drawer_menu', settings);
 			if(settings.cssAnimation){
+				//privateMethods.addCssAnimation('drawer-menu-animation-close', 'drawer-menu-animation-close', settings.speed + 'ms', 'linear', 1);
 				animation = privateMethods.getCssAnimation(settings.side, settings.speed);
 				this.css(animation);
 				$(settings.body).css(settings.side, 0).css(animation);
 				
 				animation = privateMethods.getCssAnimation(settings.child_side, settings.child_speed);
-				this.find(settings.children).each(function(){ $(this).css(animation); });
+				this.find(settings.children).each(function(){ 
+					$(this).css(animation); 
+				});
 			}
 			privateMethods.scroll(this);
 			return this;
