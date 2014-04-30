@@ -1,6 +1,6 @@
 /* Drawer-menu
- * varsion : v1.1.2
- * date    : 2014-04-04
+ * varsion : v1.2.0
+ * date    : 2014-04-30
  * http://www.coosy.co.jp/
  * Copyright (c) 2014 COOSY inc.inc */
 (function($){
@@ -8,9 +8,14 @@
 	var moving  = false;	// Moving drawer menu
 	var windowSize = 0;
 	var resizeTimer = false;
-	var EVENT_TRANSITION_END = "oTransitionEnd mozTransitionEnd webkitTransitionEnd transitionend";
-	var EVENT_ANIMATION_END = "oAnimationEnd mozAnimationEnd webkitAnimationEnd animationend";
-	var prefix = [ 'webkit', 'moz', 'ms', 'o' ];
+	var prefix = [ 'webkit', 'moz', 'ms', 'o' , ''];
+	var event_transition_end = [
+		"oTransitionEnd",
+		"oTransitionend",
+		"mozTransitionEnd",
+		"webkitTransitionEnd",
+		"transitionend"
+	];
 	var ua = navigator.userAgent.toLowerCase();
 	var android_version = ua.substr(ua.indexOf('android')+8, 3);
 	var bo = false;
@@ -72,37 +77,34 @@
 				if($opened && windowSize != $(window).width()){ $opened.drawer_menu("close"); }
 			}, 200);
 		},
-		getCssAnimation : function(css, speed, easing){
-			var animation = '';
-			if(!easing) easing = 'linear';
-			if(speed) speed = speed + 'ms';
-			if(css) animation = css + ' ' + speed + ' ' + easing;
-			return {
-				WebkitTransition: animation,
-				MozTransition: animation,
-				MsTransition: animation,
-				OTransition: animation,
-				transition: animation,
-			}
+		getTransitionEnd : function(event_name){
+			event_name = (event_name == undefined || event_name == null) ? '' : '.' + event_name;
+			return event_transition_end.join(event_name + ' ') + event_name;
 		},
-		/*addCssAnimation : function(cssName, name, duration, timingFunction, interationCount){
-			var strcss ='';
-			var _prefix = prefix;
-			_prefix.push('');
-			var len = _prefix.length - 1;
-			$.each(_prefix, function(key, val){
+		setCssTransition : function($expr, speed, easing){
+			if(!easing) easing = '';
+			if(!speed) speed = '';
+			if(speed) speed += 'ms';
+			var animation = (easing != '' || speed != '') ? 'transform ' + speed + ' ' + easing : '';
+			var len = prefix.length - 1;
+			$.each(prefix, function(key, val){
 				var pf = (key < len) ? '-' + val + '-' : '';
-				strcss += pf + 'animation-name : '     + name + ';\n\r';
-				strcss += pf + 'animation-duration : ' + duration + ';\n\r';
-				strcss += pf + 'timing-function : '    + timingFunction + ';\n\r';
-				strcss += pf + 'iteration-count : '    + interationCount + ';\n\r';
+				$expr.css(pf + 'transition', (animation != '') ? pf + animation : '');
 			});
-			strcss = '.' + cssName + '{\n\r' + strcss + '}\n\r';
-			console.log(strcss);
-		},*/
+		},
+		setCssAnimate : function($expr, side, width, fncEnd){
+			if(fncEnd) $expr.on(privateMethods.getTransitionEnd('dm_te'), fncEnd);
+			$expr.css(side);
+			var _width = ((side == 'left') ? '' : '-') + width;
+			var len = prefix.length - 1;
+			$.each(prefix, function(key, val){
+				var pf = (key < len) ? '-' + val + '-' : '';
+				$expr.css(pf + 'transform', 'translateX(' + _width + ')');
+			});
+		},
 		execute_child : function(action, callback){
 			if(moving) return false;
-			var $children, $child, $that, $ather, $menu, child_settings, closeTo,settings,childCss = {},result,$html = $('html'), fnAnimeEnd, fnSetAnimate;
+			var $children, $child, $that, $ather, $menu, $body, child_settings, closeTo, $closeTo, settings,childCss = {},result,$html = $('html'), fnAnimeEnd, fnSetAnimate;
 			if(this.length == 1){
 				$child = this;
 				child_settings = $child.data('drawer_menu');
@@ -117,6 +119,7 @@
 				return false;
 			}
 			settings = $menu.data('drawer_menu');
+			$body = $(settings.body),
 			$children = $menu.find(settings.children);
 			$that = $children.filter(':visible');
 			if(!$child){
@@ -126,71 +129,96 @@
 			$ather = $children.not($child);
 			closeTo = $child.data('drawer_menuCloseto');
 			
-			fnSetAnimate = function($expr, css, fncEnd){
-				if(settings.cssAnimation){
-					if(fncEnd) $expr.on(EVENT_TRANSITION_END, fncEnd);
-					$expr.css(settings.child_side);
-					$expr.css(css);
-				}else{
-					$expr.animate(css, settings.child_speed, fncEnd);
-				}
-			};
-			
 			if( action == 'open' || (action == 'toggle' && $child.is(':hidden'))){
 				if(!$child.is(':hidden')){ return false;}
-				childCss[settings.child_side] = '0px';
 				// open menu
 				if($menu.is(':hidden')){
-					$ather.hide().css(settings.child_side, '-100%');
-					$child.css(childCss).show();
+					if(settings.cssAnimation){
+						$ather.hide().css(settings.child_side, '-100%');
+						$child.css(settings.child_side, '0px').show();
+					}else{
+						$ather.hide().each(function(){ privateMethods.setCssAnimate($(this), settings.child_side, '0%'); });
+						$child.each(function(){ privateMethods.setCssAnimate($(this), settings.child_side, '100%'); }).show();
+					}
 					return privateMethods.execute.apply($menu, ["open", callback]);
 				}
 				// close to had opened child
 				child_settings['closeTo'] = closeTo || $that;
 				// change state to animating
 				$html.attr('data-drawer_menu-state','animating');
-				// reset scrolling
-				$menu.animate({ scrollTop : 0}, 'fast');
 				// animate end function
 				fnAnimeEnd = function(){
-					$ather.hide().css(settings.child_side, '-100%');
 					$html.attr('data-drawer_menu-state','open');
+					$ather.hide();
 					if(settings.cssAnimation){
-						$child.off(EVENT_TRANSITION_END, fnAnimeEnd);
+						$child.off(privateMethods.getTransitionEnd('dm_te'));
+						privateMethods.setCssTransition($menu);
+						privateMethods.setCssTransition($body);
+						$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this)); });
+					}else{
+						$ather.css(settings.child_side, '-100%');
 					}
 					if(typeof callback === 'function') { callback($child); }
 				};
 				// animate
+				if(settings.cssAnimation){
+					privateMethods.setCssAnimate($child, settings.child_side, '0%');
+				}
+				$ather
+					.css('z-index', '1');
 				$child
 					.data('drawer_menu', child_settings)
 					.show()
-					.css('z-index', '1');
-				fnSetAnimate($child, childCss, fnAnimeEnd);
+					.css('z-index', '2');
+				if(settings.cssAnimation){
+					$body.css(settings.side, 0);
+					privateMethods.setCssTransition($menu, settings.speed, settings.easing);
+					privateMethods.setCssTransition($body, settings.speed, settings.easing);
+					$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this), settings.child_speed, settings.child_easing); });
+					privateMethods.setCssAnimate($child, settings.child_side, '100%', fnAnimeEnd);
+				}else{
+					childCss[settings.child_side] = '0px';
+					$child.animate(childCss, settings.child_speed, settings.child_easing, fnAnimeEnd);
+				}
 				result = 'child_open';
 			}
 			else{
-				childCss[settings.child_side] = '-100%';
 				// change state to animating
 				$html.attr('data-drawer_menu-state','animating');
 				// show child after closed visible child
-				( ($child.get(0) !=  $that.get(0)) ? 
+				$closeTo = ( ($child.get(0) !=  $that.get(0)) ? 
 						$child	:
 						$menu.find( child_settings.closeTo ||  $children.filter(':first') ) 
-					)
-					.css(settings.child_side, '0px')
-					.css('z-index', '0')
-					.show();
+					);
+				if(settings.cssAnimation){
+					$closeTo.each(function(){ privateMethods.setCssAnimate($(this), settings.child_side, '100%'); });
+				}else{
+					$closeTo.css(settings.child_side, '0px');
+				}
+				$closeTo.css('z-index', '1').show();
 				// animate end function
 				fnAnimeEnd = function(){
 					$that.hide();
 					$html.attr('data-drawer_menu-state','open');
 					if(settings.cssAnimation){
-						$that.off(EVENT_TRANSITION_END, fnAnimeEnd);
+						$that.off(privateMethods.getTransitionEnd('dm_te'));
+						privateMethods.setCssTransition($menu);
+						privateMethods.setCssTransition($body);
+						$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this)); });
 					}
 					if(typeof callback === 'function') { callback($child); }
 				};
-				$that.css('z-index', '1');
-				fnSetAnimate($child, childCss, fnAnimeEnd);
+				$that.css('z-index', '2');
+				if(settings.cssAnimation){
+					$body.css(settings.side, 0);
+					privateMethods.setCssTransition($menu, settings.speed, settings.easing);
+					privateMethods.setCssTransition($body, settings.speed, settings.easing);
+					$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this), settings.child_speed, settings.child_easing); });
+					privateMethods.setCssAnimate($child, settings.child_side, '0%', fnAnimeEnd);
+				}else{
+					childCss[settings.child_side] = '-100%';
+					$child.animate(childCss, settings.child_speed, settings.child_easing, fnAnimeEnd);
+				}
 				result = 'child_close'
 			}
 			return result;
@@ -214,18 +242,10 @@
 			var $body = $(settings.body),
 				$page = $(settings.body).children().not(this),
 				$html = $('html'),
-				width = settings.width, //privateMethods.resize($menu.data('body') , 'width', $menu.data('width'));
+				width = (settings.resizePer) ? privateMethods.resize(settings.body , 'width', settings.width) : settings.width,
+				//width = settings.width,
 				position = $menu.css('position'),
 				fnAnimeEnd,
-				fnSetAnimate = function($expr, css, fncEnd){
-					if(settings.cssAnimation){
-						if(fncEnd) $expr.on(EVENT_TRANSITION_END, fncEnd);
-						$expr.css(settings.side);
-						$expr.css(css);
-					}else{
-						$expr.animate(css, settings.speed, fncEnd);
-					}
-				},
 				bodyCss = {},
 				menuCss = {},
 				result;
@@ -243,38 +263,98 @@
 				moving = true;
 				windowSize = $(window).width();
 				settings.beforeOpen();
-				$menu.scrollTop(0);
 				if(settings.tapToClose){
 					( (typeof settings.tapToClose == 'string') ? 
 							$(settings.tapToClose) : 
 							$(settings.body).children().not(this) 
-					).on('click touchstart', privateMethods.tapToClose);
+					).on('click.dm_tpc' + ((!bo) ? ' touchstart.dm_tpc' : ''), privateMethods.tapToClose);
 				}
 				if(settings.resizeToClose){
-					$(window).on('resize', privateMethods.resizeToClose);
+					$(window).on('resize.dm_resize', privateMethods.resizeToClose);
 				}
 				fnAnimeEnd = function(e){
 					moving = false;
 					$opened = $menu;
 					$html.attr('data-drawer_menu-state','open');
 					if(settings.cssAnimation){
-						$body.off(EVENT_TRANSITION_END, fnAnimeEnd);
-						$menu.off(EVENT_TRANSITION_END, fnAnimeEnd);
+						$body.off(privateMethods.getTransitionEnd('dm_te'));
+						$menu.off(privateMethods.getTransitionEnd('dm_te'));
+						privateMethods.setCssTransition($menu);
+						privateMethods.setCssTransition($body);
+						$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this)); });
 					}
 					settings.afterOpenAnimation();
 					if(typeof callback === 'function') { callback.apply($menu, e); }
 				}
 				bodyCss[settings.side] = width;
 				menuCss[settings.side] = '0px';
+				$menu.width(width);
+				if(!settings.resizeToClose && settings.resizePer){
+					var resizePerTimer = null;
+					$(window).on('resize.dm_rePer', function(){
+						if (resizePerTimer !== false) {
+							clearTimeout(resizePerTimer);
+						}
+						resizeTimer = setTimeout(function() {
+							if($opened && windowSize != $(window).width()){ 
+								var width = '', _width = '';
+								width = privateMethods.resize(settings.body , 'width', settings.width);
+								width100 = privateMethods.resize(settings.body , 'width', '100%');
+								$menu.width(width);
+								if(settings.displace){
+									if(position == 'fixed'){
+										if(settings.cssAnimation){
+											privateMethods.setAnimate($menu, settings.side, width100);
+										}else{
+											$menu.css(menuCss);
+										}
+									}
+									if(settings.cssAnimation){
+										privateMethods.setCssAnimate($body, settings.side, width);
+									}else{
+										$body.css(bodyCss);
+									}
+								}else{
+									if(settings.cssAnimation){
+										privateMethods.setAnimate($menu, settings.side, width100);
+									}else{
+										$menu.css(menuCss);
+									}
+								}
+							}
+						}, 200);
+					});
+				}
 				$menu.show();
+				$body.css((settings.side != 'right') ? 'right' : 'left', 'auto');
 				$html.attr('data-drawer_menu-state','animating');
+				if(settings.cssAnimation){
+					$body.css(settings.side, 0);
+					privateMethods.setCssTransition($menu, settings.speed, settings.easing);
+					privateMethods.setCssTransition($body, settings.speed, settings.easing);
+					$menu.find(settings.children).each(function(){ 
+						privateMethods.setCssTransition($(this), settings.child_speed, settings.child_easing);
+					});
+				}
 				if(settings.displace){
 					if(position == 'fixed'){
-						fnSetAnimate($menu, menuCss);
+						if(settings.cssAnimation){
+							privateMethods.setAnimate($menu, settings.side, '100%', fnAnimeEnd);
+						}else{
+							$menu.animate(menuCss, settings.speed, settings.easing, fnAnimeEnd);
+						}
 					}
-					fnSetAnimate($body, bodyCss, fnAnimeEnd);
+					if(settings.cssAnimation){
+						privateMethods.setCssAnimate($body, settings.side, width, fnAnimeEnd);
+					}else{
+						$body.animate(bodyCss, settings.speed, settings.easing, fnAnimeEnd);
+					}
 				}else{
-					fnSetAnimate($menu, menuCss, fnAnimeEnd);
+					if(settings.cssAnimation){
+						privateMethods.setCssAnimate($menu, settings.side, '100%', fnAnimeEnd);
+					}else{
+						$menu.animate(menuCss, settings.speed, settings.easing, fnAnimeEnd);
+					}
 				}
 				settings.afterOpen();
 				result = 'open';
@@ -291,35 +371,64 @@
 					moving = false; $opened = null;
 					$menu.hide();
 					$html.attr('data-drawer_menu-state','close');
-					$menu
-						.find(settings.children)
-							.not(':first')
-								.hide()
-								.css(settings.child_side, '-100%')
-							.end()
-							.filter(':first')
-								.css(settings.child_side, '0px')
-								.show()
-							.end();
-					$(window).off('click touchstart', privateMethods.tapToClose);
-					$(window).off('resize', privateMethods.resizeToClose);
+					var $children = $menu.find(settings.children);
 					if(settings.cssAnimation){
-						$body.off(EVENT_TRANSITION_END, fnAnimeEnd);
-						$menu.off(EVENT_TRANSITION_END, fnAnimeEnd);
+						$body.off(privateMethods.getTransitionEnd('dm_te'));
+						$menu.off(privateMethods.getTransitionEnd('dm_te'));
+						privateMethods.setCssTransition($menu);
+						privateMethods.setCssTransition($body);
+						$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this)); });
+						$children
+							.css(settings.child_side, '-100%')
+							.not(':first').hide().each(function(){
+									privateMethods.setCssAnimate($(this), settings.child_side, '0%');
+								})
+							.end()
+							.filter(':first').each(function(){
+									privateMethods.setCssAnimate($(this), settings.child_side, '100%');
+								}).show();
+					}else{
+						$children
+								.not(':first').hide().css(settings.child_side, '-100%')
+								.end()
+								.filter(':first').css(settings.child_side, '0px').show();
 					}
+					$(window).off('click.dm_tpc touchstart.dm_tpc');
+					$(window).off('resize.dm_resize resize.dm_rePer');
 					settings.afterCloseAnimation();
 					if(typeof callback === 'function') { callback.apply($menu); }
 				}
 				bodyCss[settings.side] = '0px';
 				menuCss[settings.side] = '-' + width;
+				$body.css((settings.side != 'right') ? 'right' : 'left', 'auto');
 				$html.attr('data-drawer_menu-state','animating');
+				if(settings.cssAnimation){
+					$body.css(settings.side, 0);
+					privateMethods.setCssTransition($menu, settings.speed, settings.easing);
+					privateMethods.setCssTransition($body, settings.speed, settings.easing);
+					$menu.find(settings.children).each(function(){ 
+						privateMethods.setCssTransition($(this), settings.child_speed, settings.child_easing);
+					});
+				}
 				if(settings.displace){
 					if(position == 'fixed'){
-						fnSetAnimate($menu, menuCss);
+						if(settings.cssAnimation){
+							privateMethods.setCssAnimate($menu, settings.side, '0px', fnAnimeEnd);
+						}else{
+							$menu.animate(menuCss, settings.speed, settings.easing, fnAnimeEnd);
+						}
 					}
-					fnSetAnimate($body, bodyCss, fnAnimeEnd);
+					if(settings.cssAnimation){
+						privateMethods.setCssAnimate($body, settings.side, '0px', fnAnimeEnd);
+					}else{
+						$body.animate(bodyCss, settings.speed, settings.easing, fnAnimeEnd);
+					}
 				}else{
-					fnSetAnimate($menu, menuCss, fnAnimeEnd);
+					if(settings.cssAnimation){
+						privateMethods.setCssAnimate($menu, settings.side, '0%', fnAnimeEnd);
+					}else{
+						$menu.animate(menuCss, settings.speed, settings.easing, fnAnimeEnd);
+					}
 				}
 				settings.afterClose();
 				result = 'close';
@@ -333,14 +442,17 @@
 			var defaults = {
 					body  : '.drawer-menu-body:first',
 					speed : 500,
+					easing : 'linear',
 					side  : 'left',
 					children : '.drawer-menu-panel',
 					child_speed : 500,
+					child_easing : 'linear',
 					child_side : 'left',
 					width : '80%',
 					displace : true,
 					tapToClose : '.drawer-menu-page',
 					resizeToClose : false,
+					resizePer : false,
 					cssAnimation : false,
 					beforeOpen : function () {},
 					afterOpen : function () {},
@@ -355,30 +467,31 @@
 			if(settings.side       != 'right') settings.side = 'left';
 			if(settings.child_side != 'right') settings.child_side = 'left';
 			if(settings.children){
-				this
-					.find(settings.children).each(function(){
+				var $children = this.find(settings.children).each(function(){
 							var $this = $(this);
 							$this.data('drawer_menu', { 'parent' : $menu });
-						})
-						.not(':first').hide().css(settings.child_side, '-100%')
+						});
+				if(settings.cssAnimation){
+					$children
+						.css(settings.child_side, '-100%')
+						.not(':first').hide().each(function(){
+								privateMethods.setCssAnimate($(this), settings.child_side, '0%');
+							})
 						.end()
-						.filter(':first').css(settings.child_side, '0px').show();
+						.filter(':first').each(function(){
+								privateMethods.setCssAnimate($(this), settings.child_side, '100%');
+							}).show();
+				}else{
+					$children
+							.not(':first').hide().css(settings.child_side, '-100%')
+							.end()
+							.filter(':first').css(settings.child_side, '0px').show();
+				}
 			}
 			this.css({ 'width' : settings.width })
 				.css('height', this.height)
 				.css(settings.side, '-' + settings.width)
 				.data('drawer_menu', settings);
-			if(settings.cssAnimation){
-				//privateMethods.addCssAnimation('drawer-menu-animation-close', 'drawer-menu-animation-close', settings.speed + 'ms', 'linear', 1);
-				animation = privateMethods.getCssAnimation(settings.side, settings.speed);
-				this.css(animation);
-				$(settings.body).css(settings.side, 0).css(animation);
-				
-				animation = privateMethods.getCssAnimation(settings.child_side, settings.child_speed);
-				this.find(settings.children).each(function(){ 
-					$(this).css(animation); 
-				});
-			}
 			privateMethods.scroll(this);
 			return this;
 		},
@@ -407,7 +520,7 @@
 		} else if ( typeof method === 'object' || ! method ) {
 			return methods.init.apply( this, arguments );
 		} else {
-			$.error( 'Method ' +  method + ' does not exist on jQuery.tooltip' );
+			$.error( 'Method ' +  method + ' does not exist on jQuery.drawer_menu' );
 		}
 	};
 	$.drawer_menu = {
@@ -428,8 +541,8 @@
 	$(document).on('click', "[data-drawer_menu-open], [data-drawer_menu-close], [data-drawer_menu-toggle], [data-drawer_menu-child]" ,function(){
 		var $this = $(this),
 			settings = $this.data(),
-			key = $.map(settings, function(key, value){ return key.match(/^drawer_menu/);})[0];
-			action = key.replace('drawer_menu', '').toLowerCase();
+			key = $.map(settings, function(value, key){ return /^drawer_menu/.test(key) ? key : null;})[0];
+			action = String(key).replace('drawer_menu', '').toLowerCase();
 		$(settings[key]).drawer_menu(action);
 	});
 	

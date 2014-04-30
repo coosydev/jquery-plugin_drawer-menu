@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, maximum-scale=2.0, minimum-scale=1.0, initial-scale=1.0">
+<meta name="keywords" content="">
+<meta name="description" content="">
+<title>jQuery plugin Drawer Menu | Coosy Inc.</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript" src="jquery.drawer-menu.js"></script>
+<link href="/jquery.drawer-menu.css" type="text/css" rel="stylesheet">
+<link rel="canonical" href="http://[URL]">
+<style>
+body{
+	margin : 0px;
+	background-color : #00ccdd;
+	font-size: 12px;
+	font-family: "ヒラギノ角ゴ Pro W3", "Hiragino Kaku Gothic Pro", "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", sans-serif;
+	line-height: 1.4;
+	letter-spacing: 1px;
+	height: 100%;
+}
+html[data-drawer_menu-state="animating"],
+html[data-drawer_menu-state="animating"] .drawer-menu-panels{
+	overflow : hidden;
+}
+html[data-drawer_menu-state="open"],
+html[data-drawer_menu-state="open"] .drawer-menu-page{
+	overflow : hidden;
+}
+#page{
+	margin : 0px;
+	padding : 0px;
+	height : 100%;
+	min-height: 100%;
+	/*overflow : scroll;*/
+}
+#header{
+	padding : 15px;
+	text-align: center;
+}
+#page section.inner{
+	padding : 30px;
+}
+#page pre{
+	overflow : scroll;
+}
+.drawer-menu-panels{
+	color : #FFF;
+	background-color : #333333;
+}
+.drawer-menu-panel .panel_inner{
+	padding : 15px;
+}
+.drawer-menu-panel[name="panel_sub01"]{
+	background-color : #333333;
+}
+.drawer-menu-panel[name="panel_sub02"]{
+	background-color : #666666;
+}
+.drawer-menu-panel[name="panel_sub03"]{
+	background-color : #999999;
+}
+</style>
+</head>
+<body class="drawer-menu-body">
+<div id="page" class="drawer-menu-page">
+	<!--// header -->
+	<header id="header">
+		<input type="button" onclick="$.drawer_menu.toggle('#drawer-menu03')" value="メニュー" />
+		<h1 class="logoCol">jQuery plugin Drawer Menu</h1>
+	</header>
+	<!-- header //-->
+	<!-- content -->
+	<section class="inner">
+		<section>
+			<h2>基礎：左メニュー</h2>
+			<input type="button" onclick="$.drawer_menu.toggle('#drawer-menu01')" value="メニュー" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_01')" value="サブメニュー1" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_02')" value="サブメニュー2" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_03')" value="サブメニュー3" />
+			<p></p>
+			<pre>
+$('#drawer-menu01').drawer_menu();
+			</pre>
+			<script>
+			$(function(){
+				$('#drawer-menu01').drawer_menu();
+			});
+			</script>
+		</section>
+		<section>
+			<h2>右メニュー</h2>
+			<input type="button" onclick="$.drawer_menu.toggle('#drawer-menu02')" value="メニュー" />
+			<p>
+			</p>
+			<pre>
+$('#drawer-menu02').drawer_menu({
+	side : 'right',
+	child_side : 'right',
+});
+			</pre>
+			<script>
+			$(function(){
+				$('#drawer-menu02').drawer_menu({
+					side : 'right',
+					child_side : 'right',
+				});
+			});
+			</script>
+		</section>
+		<section>
+			<h2>CSS Animation</h2>
+			<input type="button" onclick="$.drawer_menu.toggle('#drawer-menu03')" value="メニュー" />
+			<p>jQuery 1.11 では jQuery 側に不具合があるようで▼のままでは使用できません。
+			css で 'transition : transform 100ms linear' 等を メニューの body(.drawer-menu-body) 部分、サブメニュー部分(.drawer-menu-panel)に追加してください。
+			ブラウザによってはプレフィックスが必要になります。</p>
+			<pre>
+$('#drawer-menu03').drawer_menu({
+	speed : 300,
+	child_speed : 300,
+	cssAnimation : true,
+	resizePer : true,
+	beforeOpen : function(){
+		$('#drawer-menu03').css('top', $(window).scrollTop() - 1);
+	},
+});
+			</pre>
+			<script>
+			$(function(){
+				$('#drawer-menu03').drawer_menu({
+					speed : 300,
+					child_speed : 300,
+					cssAnimation : true,
+					resizePer : true,
+					beforeOpen : function(){
+						var top = Number($(window).scrollTop());
+						if(0 < top) top--;
+						$('#drawer-menu03').css('top', top );
+					},
+				});
+			});
+			</script>
+		</section>
+		<section>
+			<h2>Easing</h2>
+			<input type="button" onclick="$.drawer_menu.toggle('#drawer-menu04')" value="メニュー2" />
+			<p>JS Animation と CSS Animation の時では Easing の指定方法が違います。下記の URL を参考に指定してください。</p>
+			<dl>
+				<dt>JA Animation</dt><dd><a target="_blank" href="http://semooh.jp/jquery/cont/doc/easing/">http://semooh.jp/jquery/cont/doc/easing/</a></dd>
+				<dt>CSS Animation</dt><dd><a target="_blank" href="http://matthewlein.com/ceaser/">http://matthewlein.com/ceaser/</a></dd>
+			</dl>
+			<pre>
+$('#drawer-menu04').drawer_menu({
+	cssAnimation : true,
+	easing : '(0.680, -0.550, 0.265, 1.550)', /* easeInOutBack */
+	child_easing : 'cubic-bezier(0.680, -0.550, 0.265, 1.550)', /* easeInOutBack */
+});
+			</pre>
+			<script>
+			$(function(){
+				$('#drawer-menu04').drawer_menu({
+					cssAnimation : true,
+					easing : 'cubic-bezier(0.680, -0.550, 0.265, 1.550)', /* easeInOutBack */
+					child_easing : 'cubic-bezier(0.680, -0.550, 0.265, 1.550)', /* easeInOutBack */
+				});
+			});
+			</script>
+		</section>
+	</section>
+	<!-- //content -->
+</div>
+<!-- 01 メニュー部分 -->
+<div class="drawer-menu-panels" id="drawer-menu01">
+	<div class="drawer-menu-panel" id="drawer-menu01_01" name="panel_sub01" >
+		<div class="panel_inner">
+			<h3>メニュー1:サブメニュー1(メイン)</h3>
+			<input type="button" onclick="$.drawer_menu.close()"  value="閉じる" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_02')"  value="サブメニュー2" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_03')"  value="サブメニュー3" />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			ここまで。
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu01_02" name="panel_sub02" >
+		<div class="panel_inner">
+			<h3>メニュー1:サブメニュー2</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu01_03')"  value="サブメニュー3" />
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu01_03" name="panel_sub03" data-drawer_menu-closeTo='#drawer-menu01_01'>
+		<div class="panel_inner">
+			<h3>メニュー1:サブメニュー3</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<p>クローズ先を指定しているので「戻る」ボタンを押すとサブメニュー1が表示されます。</p>
+			<p>クローズ先はサブメニュー要素に▼を指定することで可能になります。</p>
+			<div>data-drawer_menu-closeTo</div>
+		</div>
+	</div>
+</div>
+<!-- //01 メニュー部分 -->
+<!-- 02 メニュー部分 -->
+<div class="drawer-menu-panels" id="drawer-menu02">
+	<div class="drawer-menu-panel" id="drawer-menu02_01" name="panel_sub01" >
+		<div class="panel_inner">
+			<h3>メニュー2:サブメニュー1(メイン)</h3>
+			<input type="button" onclick="$.drawer_menu.close()"  value="閉じる" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu02_02')"  value="サブメニュー2" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu02_03')"  value="サブメニュー3" />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			ここまで。
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu02_02" name="panel_sub02" >
+		<div class="panel_inner">
+			<h3>メニュー2:サブメニュー2</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu02_03')"  value="サブメニュー3" />
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu02_03" name="panel_sub03" data-drawer_menu-closeTo='#drawer-menu02_01'>
+		<div class="panel_inner">
+			<h3>メニュー2:サブメニュー3</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<p>クローズ先を指定しているので「戻る」ボタンを押すとサブメニュー1が表示されます。</p>
+			<p>クローズ先はサブメニュー要素に▼を指定することで可能になります。</p>
+			<div>data-drawer_menu-closeTo</div>
+		</div>
+	</div>
+</div>
+<!-- //02 メニュー部分 -->
+<!-- 03 メニュー部分 -->
+<div class="drawer-menu-panels" id="drawer-menu03">
+	<div class="drawer-menu-panel" id="drawer-menu03_01" name="panel_sub01" >
+		<div class="panel_inner">
+			<h3>メニュー3:サブメニュー1(メイン)</h3>
+			<input type="button" onclick="$.drawer_menu.close()"  value="閉じる" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu03_02')"  value="サブメニュー2" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu03_03')"  value="サブメニュー3" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu03_04')"  value="サブメニュー4" />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			ここまで。
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu03_02" name="panel_sub02" >
+		<div class="panel_inner">
+			<h3>メニュー3:サブメニュー2</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu03_03')"  value="サブメニュー3" />
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu03_03" name="panel_sub03" data-drawer_menu-closeTo='#drawer-menu03_01'>
+		<div class="panel_inner">
+			<h3>メニュー3:サブメニュー3</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<p>クローズ先を指定しているので「戻る」ボタンを押すとサブメニュー1が表示されます。</p>
+			<p>クローズ先はサブメニュー要素に▼を指定することで可能になります。</p>
+			<div>data-drawer_menu-closeTo</div>
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu03_04" name="panel_sub03" data-drawer_menu-closeTo='#drawer-menu03_02'>
+		<div class="panel_inner">
+			<h3>メニュー3:サブメニュー4</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<p>クローズ先を指定しているので「戻る」ボタンを押すとサブメニュー2が表示されます。</p>
+			<p>クローズ先はサブメニュー要素に▼を指定することで可能になります。</p>
+			<div>data-drawer_menu-closeTo</div>
+		</div>
+	</div>
+</div>
+<!-- //03 メニュー部分 -->
+<!-- 04 メニュー部分 -->
+<div class="drawer-menu-panels" id="drawer-menu04">
+	<div class="drawer-menu-panel" id="drawer-menu04_01" name="panel_sub01" >
+		<div class="panel_inner">
+			<h3>メニュー4:サブメニュー1(メイン)</h3>
+			<input type="button" onclick="$.drawer_menu.close()"  value="閉じる" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu04_02')"  value="サブメニュー2" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu04_03')"  value="サブメニュー3" />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			<br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+			ここまで。
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu04_02" name="panel_sub02" >
+		<div class="panel_inner">
+			<h3>メニュー4:サブメニュー2</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<input type="button" onclick="$.drawer_menu.child('#drawer-menu04_03')"  value="サブメニュー3" />
+		</div>
+	</div>
+	<div class="drawer-menu-panel" id="drawer-menu04_03" name="panel_sub03" data-drawer_menu-closeTo='#drawer-menu04_01'>
+		<div class="panel_inner">
+			<h3>メニュー4:サブメニュー3</h3>
+			<input type="button" onclick="$.drawer_menu.child()" value="戻る" />
+			<p>クローズ先を指定しているので「戻る」ボタンを押すとサブメニュー1が表示されます。</p>
+			<p>クローズ先はサブメニュー要素に▼を指定することで可能になります。</p>
+			<div>data-drawer_menu-closeTo</div>
+		</div>
+	</div>
+</div>
+<!-- //03 メニュー部分 -->
+<script>
+	/*var timer = null;
+	function resizeTo() {
+		if (timer !== false) {
+			clearTimeout(timer);
+		}
+		timer = setTimeout(function() {
+			var settings = $('#drawer-menu01').data('drawer_menu');
+			settings.afterOpenAnimation();
+		}, 200);
+	}*/
+</script>
+<!-- scripts //-->
+</body>
+</html>
