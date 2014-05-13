@@ -1,6 +1,6 @@
 /* Drawer-menu
- * varsion : v1.2.0
- * date    : 2014-04-30
+ * varsion : v1.2.1
+ * date    : 2014-05-13
  * http://www.coosy.co.jp/
  * Copyright (c) 2014 COOSY inc.inc */
 (function($){
@@ -304,7 +304,7 @@
 								if(settings.displace){
 									if(position == 'fixed'){
 										if(settings.cssAnimation){
-											privateMethods.setAnimate($menu, settings.side, width100);
+											privateMethods.setCssAnimate($menu, settings.side, width100);
 										}else{
 											$menu.css(menuCss);
 										}
@@ -316,7 +316,7 @@
 									}
 								}else{
 									if(settings.cssAnimation){
-										privateMethods.setAnimate($menu, settings.side, width100);
+										privateMethods.setCssAnimate($menu, settings.side, width100);
 									}else{
 										$menu.css(menuCss);
 									}
@@ -339,7 +339,7 @@
 				if(settings.displace){
 					if(position == 'fixed'){
 						if(settings.cssAnimation){
-							privateMethods.setAnimate($menu, settings.side, '100%', fnAnimeEnd);
+							privateMethods.setCssAnimate($menu, settings.side, '100%', fnAnimeEnd);
 						}else{
 							$menu.animate(menuCss, settings.speed, settings.easing, fnAnimeEnd);
 						}

@@ -122,7 +122,9 @@ $('#drawer-menu03').drawer_menu({
 	cssAnimation : true,
 	resizePer : true,
 	beforeOpen : function(){
-		$('#drawer-menu03').css('top', $(window).scrollTop() - 1);
+		var top = Number($(window).scrollTop());
+		if(0 < top) top--;
+		$('#drawer-menu03').css('top', top );
 	},
 });
 			</pre>
