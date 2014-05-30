@@ -1,5 +1,5 @@
-# drawer-menu
-drawer-menuは左右からスライドで現れるメニューを実装するためのjQueryプラグインです。実装には jQuery 1.9以上が必要です。
+# drawer-menu Version2
+drawer-menuは左右からスライドで現れるメニューを実装するためのjQueryプラグインです。実装には jQuery 2.1.1 以上が必要です。
 
 # サポート
 * Android2.3 以降
