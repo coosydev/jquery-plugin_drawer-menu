@@ -6,7 +6,7 @@
 <meta name="keywords" content="">
 <meta name="description" content="">
 <title>jQuery plugin Drawer Menu | Coosy Inc.</title>
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script type="text/javascript" src="jquery.drawer-menu.js"></script>
 <link href="/jquery.drawer-menu.css" type="text/css" rel="stylesheet">
 <link rel="canonical" href="http://[URL]">
@@ -19,14 +19,6 @@ body{
 	line-height: 1.4;
 	letter-spacing: 1px;
 	height: 100%;
-}
-html[data-drawer_menu-state="animating"],
-html[data-drawer_menu-state="animating"] .drawer-menu-panels{
-	overflow : hidden;
-}
-html[data-drawer_menu-state="open"],
-html[data-drawer_menu-state="open"] .drawer-menu-page{
-	overflow : hidden;
 }
 #page{
 	margin : 0px;
@@ -60,6 +52,12 @@ html[data-drawer_menu-state="open"] .drawer-menu-page{
 }
 .drawer-menu-panel[name="panel_sub03"]{
 	background-color : #999999;
+}
+/* CssAnimation でアニメーション後のパチパチ防止 Android 2.3 には不要 */
+.drawer-menu-page *,
+.drawer-menu-panels * {
+	-webkit-backface-visibility:hidden;
+	backface-visibility:hidden;
 }
 </style>
 </head>

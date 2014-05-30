@@ -8,9 +8,10 @@ drawer-menuは左右からスライドで現れるメニューを実装するた
 ※ PCでも使用できますがサポートは現在行っておりません。
 
 # 必要なファイル
-* jQuery 1.9 以上
+* jQuery 2.1.1 以上 
 * jquery.drawer-menu.js (drawer-menu 本体)
 * jquery.drawer-menu.css (drawer-menu 付属CSS)
+**いくつかのjQueryバージョンで不具合がありCssAnimationが動作しないのを確認しています。**
 
 # 簡単な使い方
 `jquery.drawer-menu.js` をダウンロードして使用するHTMLにjQueryを読み込んだ後にインクルードしてください。
@@ -94,13 +95,18 @@ drawer\_menu jQuery プラグインでは `$(expr).drawer\_menu` と `$.drawer\_
 <pre><code>$(".drawer-menu-panels").drawer_menu({
 	body  : '.drawer-menu-body:first',
 	speed : 500,
+	easing : 'liner',
 	side  : 'left',
 	children : '.drawer-menu-panel',
 	child_speed : 500,
+	child_easing : 'liner',
 	child_side : 'left',
 	width : '80%',
 	displace : true,
 	tapToClose : '.drawer-menu-page',
+	resizeToClose : false,
+	resizePer : false,
+	cssAnimation : true,
 	beforeOpen : function () {},
 	afterOpen : function () {},
 	afterOpenAnimation : function () {},
@@ -111,6 +117,13 @@ drawer\_menu jQuery プラグインでは `$(expr).drawer\_menu` と `$.drawer\_
 
 ### body
 ページコンテンツ、メニューの親になる要素を jQuery selecter で指定します。デフォルトは<code>.drawer-menu-body:first</code>です。
+
+### easing
+メニューが表示時にかかるアニメーションに easing を加えます。スマートフォンではCPU,GPUの性能が悪く、なめらかな easing になりません。
+また、JS Animation と CSS Animation の時では Easing の指定方法が異なります。下記をご参考ください。デフォルトは `linear` です。
+
+* JA Animation ： <a target="_blank" href="http://semooh.jp/jquery/cont/doc/easing/">http://semooh.jp/jquery/cont/doc/easing/</a>
+* CSS Animation ： <a target="_blank" href="http://matthewlein.com/ceaser/">http://matthewlein.com/ceaser/</a>
 
 ### speed
 メニューが表示時にかかるアニメーションの速度を指定します。デフォルトは<code>500</code>です。
@@ -126,6 +139,10 @@ children : '.panel'	,	// CSS Class に .panel を指定した要素</code></pre>
 ### child_speed
 サブメニューが表示時にかかるアニメーションの速度を指定します。デフォルトは<code>500</code>です。
 
+### child_easing
+サブメニューが表示時にかかるアニメーションに easing を加えます。スマートフォンではCPU,GPUの性能が悪く、なめらかな easing になりません。
+また、JS Animation と CSS Animation の時では Easing の指定方法が異なります。下記をご参考ください。デフォルトは `linear` です。
+
 ### child_side
 サブメニューが表示される位置を左右(<code>left</code>, <code>right</code>)で指定できます。デフォルトは<code>left</code>です。
 
@@ -137,6 +154,19 @@ children : '.panel'	,	// CSS Class に .panel を指定した要素</code></pre>
 
 ### tapToCloce
 メニュー表示時にページコンテンツをクリック(タップ)してメニューを閉じるかを設定できます。`true` , `false` もしくは jQuery selecterで指定します。`true` の場合は、メニュー以外の `body` 以下の要素クリックされた場合のみ閉じます。jQuery selecter で指定された場合は、その要素がクリックされた場合のみ閉じます。デフォルトは`.drawer-menu-page`です。
+
+### resizeToClose
+画面がリサイズされるとメニューが自動的にクローズするようになります。
+デフォルトは、`false` です。
+
+
+### resizePer
+`width` を % で指定した場合、%　を px に変換して処理を行います。
+デフォルトは、`false` です。
+
+### CssAnimation
+アニメーションを CSS の `transform : translateX()` で行います。JS Animation より滑らかな動きになります。
+本スクリプト version 2 よりデフォルトが `true` になります。
 
 ### beforeOpen, afterOpen, afterOpenAnimation, beforeClose, afterClose, afterOpenAnimation
 メニューが開く前後とアニメーションが終了時、メニューが閉じる前後とアニメーション終了時、に実行する処理を指定できます。
@@ -225,30 +255,13 @@ HTML に data 要素を指定することで、メニューボタンとして使
 # CSS の設定
 
 ## メニューオープン時のスタイル
-メニューが開いている時は html に `data-drawer_menu-state="open"` の data 要素が追加されます。下記のように設定できます。 
-
-### メニューオープン時にページコンテンツ部分のスクロールをさせない
-<pre><code>html[data-drawer_menu-state="open"] .drawer-menu-body{
-	overflow : hidden;
-}
-html[data-drawer_menu-state="open"] .drawer-menu-page{
-	overflow : hidden;
-}</code></pre>
+メニューが開いている時は html に `data-drawer_menu-state="open"` の data 要素が追加されます。
 
 ## メニュークローズ時のスタイル
 メニューが閉じている時は html に `data-drawer_menu-state="open"` の data 要素が追加されます。
 
 ## アニメーション時のスタイル
-アニメーション時には html に `data-drawer_menu-state="animating"` の data 要素が追加されます。下記のように設定できます。 
-
-### アニメーション時の横スクロールバーを消す
-<pre><code>html[data-drawer_menu-state="animating"]{
-	overflow-x : hidden;
-}
-html[data-drawer_menu-state="animating"] .drawer-menu-panels{
-	overflow : hidden;
-}
-</code></pre>
+アニメーション時には html に `data-drawer_menu-state="animating"` の data 要素が追加されます。
 
 ## その他設定例
 スマートフォンでは、`overflow : auto`は使用できません。Android2.3 では `position : fixed` は使用できません。「メニューを開いたままページコンテンツをスクロールさせる」 CSS設定例は PC 向けの設定になります。 

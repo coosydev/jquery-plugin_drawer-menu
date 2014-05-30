@@ -23,3 +23,12 @@
 	height: 100%;
 	top: 0;
 }
+html[data-drawer_menu-state="animating"],
+html[data-drawer_menu-state="animating"] .drawer-menu-body,
+html[data-drawer_menu-state="animating"] .drawer-menu-panels{
+	overflow : hidden;
+}
+html[data-drawer_menu-state="open"],
+html[data-drawer_menu-state="open"] .drawer-menu-page{
+	overflow : hidden;
+}
