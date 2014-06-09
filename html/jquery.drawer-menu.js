@@ -96,7 +96,11 @@
 			if(fncEnd) $expr.on(privateMethods.getTransitionEnd('dm_te'), fncEnd);
 			$expr.css(side);
 			var _width = ((side == 'left') ? '-' : '') + width;
-			$expr.css('transform', 'translateX(' + _width + ')');
+			var len = prefix.length - 1;
+			$.each(prefix, function(key, val){
+				var pf = (key < len) ? '-' + val + '-' : '';
+				$expr.css(pf + 'transform', 'translateX(' + _width + ')');
+			});
 		},
 		execute_child : function(action, callback){
 			if(moving) return false;
