@@ -104,6 +104,9 @@
 		},
 		execute_child : function(action, callback){
 			if(moving) return false;
+			// $child is action DOM
+			// $that is active DOM
+			// $ather is no active DOM
 			var $children, $child, $that, $ather, $menu, $body, child_settings, closeTo, $closeTo, settings,childCss = {},result,$html = $('html'), fnAnimeEnd, fnSetAnimate;
 			if(this.length == 1){
 				$child = this;
@@ -206,10 +209,10 @@
 				$that.css('z-index', '2');
 				if(settings.cssAnimation){
 					$menu.find(settings.children).each(function(){ privateMethods.setCssTransition($(this), settings.child_speed, settings.child_easing); });
-					privateMethods.setCssAnimate($child, settings.child_side, '100%', fnAnimeEnd);
+					privateMethods.setCssAnimate($that, settings.child_side, '100%', fnAnimeEnd);
 				}else{
 					childCss[settings.child_side] = '-100%';
-					$child.animate(childCss, settings.child_speed, settings.child_easing, fnAnimeEnd);
+					$that.animate(childCss, settings.child_speed, settings.child_easing, fnAnimeEnd);
 				}
 				result = 'child_close'
 			}
